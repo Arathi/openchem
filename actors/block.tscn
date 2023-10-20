@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://8badppvtr6k3"]
+
+[ext_resource type="Script" path="res://actors/block.gd" id="1_psaae"]
+[ext_resource type="PackedScene" uid="uid://bq7m8l8qhygvv" path="res://actors/operator.tscn" id="2_6njxc"]
+
+[node name="block" type="Node2D"]
+script = ExtResource("1_psaae")
+
+[node name="op_red" parent="." instance=ExtResource("2_6njxc")]
+
+[node name="op_blue" parent="." instance=ExtResource("2_6njxc")]
+layer = 1
