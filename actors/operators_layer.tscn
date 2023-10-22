@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://mi8wlukse683"]
-
-[ext_resource type="Script" path="res://actors/operators_layer.gd" id="1_ci42c"]
-
-[node name="operators_layer" type="Node2D"]
-script = ExtResource("1_ci42c")

@@ -1,33 +1,25 @@
 @tool
-class_name Operator
 extends Node2D
 
 
-const font = preload("res://assets/fonts/ipix_12px.ttf")
+const font = preload("res://assets/fonts/NotoSans-Regular.ttf")
+
+const Reactor = preload("res://actors/reactor.gd")
+
+const COLOR_UNKNOWN = Color("#555555")
 const COLOR_RED = Color("#ff0000")
 const COLOR_BLUE = Color("#0000ff")
 const COLOR_BORDER = Color("#000000")
-const COLOR_UNKNOWN = Color("#202020")
-
-const RED_SCALE = 0.333
-const BLUE_SCALE = 0.666
-
-const BALL_RADIUS_SCALE = 0.166
-const TRIANGLE_HEIGHT_SCALE = 0.15
-
-
-enum Layer {
-	Red,
-	Blue,
-}
+const Layer = Reactor.Layer
 
 
 enum Type {
-	None = 0,
+	None,
 	Diversion,
+	Band,
 	GrabDrop,
+	InOut,
 }
-
 
 enum Direction {
 	Up,
@@ -36,53 +28,52 @@ enum Direction {
 	Left,
 }
 
-
 enum GrabDrop {
 	Toggle,
 	Grab,
 	Drop,
 }
 
-@export_group("编辑器属性", "editor_")
-@export var editor_size: float = 100:
-	set(value):
-		editor_size = value
-		update_editor()
-
-
-func update_editor():
-	if Engine.is_editor_hint():
-		update()
+enum InOut {
+	Alpha,
+	Beta,
+	Psi,
+	Omega,
+}
 
 
 @export_group("样式")
-@export var font_scale: float = 0.125:
-	set(value):
-		font_scale = value
-		update()
-
-# 最大不能超过sqrt(2)/6约为0.2357，否则两个圆会重叠
-@export_range(0.150, 0.2357, 0.0001) var radius_scale: float = 0.23:
-	set(value):
-		radius_scale = value
-		update()
-
-@export var single_line_factor: float = 1:
-	set(value):
-		single_line_factor = value
-		update()
-
-@export var double_line_factor: float = 0.5:
-	set(value):
-		double_line_factor = value
-		update()
-
-@export_group("操作")
 @export var layer: Layer = Layer.Red:
 	set(value):
 		layer = value
 		update()
 
+@export_range(64, 240, 0.1) var size: float = 100:
+	set(value):
+		size = value
+		update()
+
+@export_range(0.15, 0.2357, 0.0001) var radius_scale: float = 0.23:
+	set(value):
+		radius_scale = value
+		update()
+
+@export_range(0.1, 1, 0.01) var text_size_scale: float = 0.15:
+	set(value):
+		text_size_scale = value
+		update()
+
+@export_range(0.1, 1, 0.01) var text_offset_scale: float = 0.25:
+	set(value):
+		text_offset_scale = value
+		update()
+
+@export_range(0.01, 1, 0.01) var height_scale: float = 0.08:
+	set(value):
+		height_scale = value
+		update()
+
+@export_group("数据")
 @export var type: Type = Type.None:
 	set(value):
 		type = value
@@ -93,33 +84,24 @@ func update_editor():
 		data = value
 		update()
 
-@export var element_number: int = 0:
-	set(value):
-		element_number = value
-		update()
 
-
-var parent: Block:
+var centre: Vector2:
 	get:
-		if has_node(".."):
-			var node = get_node("..")
-			if node is Block:
-				return node
-		return null
+		var p = size / 3.0
+		if layer == Layer.Blue:
+			p *= 2
+		return Vector2(p, p)
 
-var size: float:
+var color: Color:
 	get:
-		if parent != null:
-			return parent.size
-		return editor_size
-
-var radius: float:
-	get:
-		return size * radius_scale
+		var index = layer % 2
+		match index:
+			Layer.Red: return COLOR_RED
+			Layer.Blue: return COLOR_BLUE
+		return COLOR_UNKNOWN
 
 
 func _ready():
-	update()
 	pass
 
 
@@ -131,102 +113,91 @@ func _draw():
 	match type:
 		Type.Diversion:
 			draw_diversion()
+		Type.Band:
+			draw_band()
 		Type.GrabDrop:
 			draw_grab_drop()
-			
+		Type.InOut:
+			draw_in_out()
 	pass
 
 
 func draw_diversion():
 	var dir: Direction = data % 4
+	var cx = centre.x
+	var cy = centre.y
+	var h = size * height_scale
+	
+	var points = PackedVector2Array()
 	match dir:
 		Direction.Up:
-			draw_triangle()
-	pass
+			points.append(Vector2(cx, h))
+			points.append(Vector2(cx-h, 2*h))
+			points.append(Vector2(cx+h, 2*h))
+		Direction.Right:
+			points.append(Vector2(size-h, cy))
+			points.append(Vector2(size-2*h, cy-h))
+			points.append(Vector2(size-2*h, cy+h))
+		Direction.Down:
+			points.append(Vector2(cx, size-h))
+			points.append(Vector2(cx-h, size-2*h))
+			points.append(Vector2(cx+h, size-2*h))
+		Direction.Left:
+			points.append(Vector2(h, cy))
+			points.append(Vector2(2*h, cy-h))
+			points.append(Vector2(2*h, cy+h))
+
+	draw_polygon(points, PackedColorArray([color]))
 
 
-func draw_triangle():
-	var origin = Vector2(0, 0)
-	if layer == Layer.Red:
-		origin.x = 0
-	elif layer == Layer.Blue:
-		pass
+func draw_band():
+	var sign: = data % 2
+	match sign:
+		0: draw_circle_text(["Band", "+"])
+		1: draw_circle_text(["Band", "-"])
 	pass
 
 
 func draw_grab_drop():
 	var gd: GrabDrop = data % 3
-	var font_size = 0
-	var text = ""
-	var centre: Vector2 = draw_ball()
-
-	font_size = size * font_scale
-	
 	match gd:
-		GrabDrop.Toggle:
-			var pos = Vector2(centre.x - radius, centre.y - radius + font_size * double_line_factor)
-			draw_strings(pos, ["Grab", "Drop"], font_size)
-		GrabDrop.Grab:
-			var pos = Vector2(centre.x - radius, centre.y - radius + font_size * single_line_factor)
-			draw_strings(pos, ["Grab"], font_size)
-		GrabDrop.Drop:
-			var pos = Vector2(centre.x - radius, centre.y - radius + font_size * single_line_factor)
-			draw_strings(pos, ["Drop"], font_size)
-	
-	pass
+		GrabDrop.Toggle: draw_circle_text(["Grab", "Drop"])
+		GrabDrop.Grab: draw_circle_text(["Grab"])
+		GrabDrop.Drop: draw_circle_text(["Drop"])
 
 
-func draw_strings(pos: Vector2, lines: Array[String], font_size: int):
-	var width = size / 3
-	var offset_y = 0
-	for text in lines:
-		offset_y += font_size
+func draw_in_out():
+	var io: InOut = data % 4
+	match io:
+		InOut.Alpha: draw_circle_text(["In", "α"])
+		InOut.Beta: draw_circle_text(["In", "β"])
+		InOut.Psi: draw_circle_text(["Out", "ψ"])
+		InOut.Omega: draw_circle_text(["Out", "ω"])
+
+
+func draw_circle_text(lines: Array[String]):
+	var radius = size * radius_scale
+	draw_circle(centre, radius, color)
+	var font_size = size * text_size_scale
+	var offset_y = lines.size() * 0.5 * font_size - 2 * radius * text_offset_scale
+	var index = 0
+	for line in lines:
+		var pos = Vector2(
+			centre.x - radius, 
+			centre.y - offset_y + index * font_size
+		)
 		draw_string(
-			font,
-			Vector2(pos.x, pos.y + offset_y),
-			text,
-			HORIZONTAL_ALIGNMENT_CENTER,
-			radius * 2,
+			font, 
+			pos, 
+			line, 
+			HORIZONTAL_ALIGNMENT_CENTER, 
+			radius * 2, 
 			font_size
 		)
-	pass
-
-
-func draw_ball() -> Vector2:
-	var centre = Vector2(0, 0)
-	var color: Color = COLOR_UNKNOWN
-	if layer == Layer.Red:
-		centre.x = size / 3
-		centre.y = size / 3
-		color = COLOR_RED
-	elif layer == Layer.Blue:
-		centre.x = size * 2 / 3
-		centre.y = size * 2 / 3
-		color = COLOR_BLUE
-	draw_circle(centre, radius, COLOR_BORDER)
-	draw_circle(centre, radius - 1, color)
-	return centre
+		index += 1
 
 
 func update():
-	if !is_node_ready():
-		return
-	
-	match type:
-		Type.Diversion:
-			pass
-		Type.GrabDrop:
-			pass
-
 	queue_redraw()
+	pass
 
-
-func update_grab_drop():
-	var gd: GrabDrop = data % 3
-	match gd:
-		GrabDrop.Toggle:
-			pass
-		GrabDrop.Grab:
-			pass
-		GrabDrop.Drop:
-			pass

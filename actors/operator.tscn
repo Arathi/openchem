@@ -1,9 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://bq7m8l8qhygvv"]
+[gd_scene load_steps=2 format=3 uid="uid://dsml83rjrqtlb"]
 
-[ext_resource type="Script" path="res://actors/operator.gd" id="1_wjw42"]
+[ext_resource type="Script" path="res://actors/operator.gd" id="1_kyscq"]
 
 [node name="operator" type="Node2D"]
-script = ExtResource("1_wjw42")
-font_scale = 0.14
-type = 2
-data = 11
+script = ExtResource("1_kyscq")
+data = 16

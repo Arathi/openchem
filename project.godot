@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="openchem"
+config/name="space-chem-godot"
 config/features=PackedStringArray("4.1", "Mobile")
 config/icon="res://icon.svg"
 
@@ -18,6 +18,41 @@ config/icon="res://icon.svg"
 
 window/size/viewport_width=1600
 window/size/viewport_height=900
+
+[input]
+
+band={
+"deadzone": 0.5,
+"events": []
+}
+up={
+"deadzone": 0.5,
+"events": []
+}
+right={
+"deadzone": 0.5,
+"events": []
+}
+down={
+"deadzone": 0.5,
+"events": []
+}
+left={
+"deadzone": 0.5,
+"events": []
+}
+grab_drop={
+"deadzone": 0.5,
+"events": []
+}
+in={
+"deadzone": 0.5,
+"events": []
+}
+out={
+"deadzone": 0.5,
+"events": []
+}
 
 [rendering]
 
