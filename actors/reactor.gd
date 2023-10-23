@@ -13,6 +13,10 @@ const Operator = preload("res://actors/operator.gd")
 
 const font = preload("res://assets/fonts/NotoSans-Regular.ttf")
 
+signal add_operator(x: int, y: int)
+signal remove_operator(x: int, y: int)
+
+
 enum Type {
 	None,
 	Alpha,
@@ -99,6 +103,8 @@ func get_op_name(layer: Layer, x: int, y: int) -> String:
 func create_cell(x: int, y: int) -> Cell:
 	var cell: Cell = CellActor.instantiate()
 	cell.name = get_cell_name(x, y)
+	cell.x = x
+	cell.y = y
 	return cell
 
 
@@ -110,6 +116,12 @@ func create_op(layer: Layer, x: int, y: int) -> Operator:
 
 func _ready():
 	update()
+	connect("add_operator", self.on_add_operator)
+	pass
+
+
+func on_add_operator(x: int, y: int):
+	print("添加操作符：%d(%d, %d)")
 	pass
 
 

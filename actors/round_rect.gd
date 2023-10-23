@@ -2,6 +2,7 @@
 @tool
 extends Node2D
 
+const Reactor = preload("res://actors/reactor.gd")
 
 @export var width: float = 80:
 	set(value):
@@ -22,6 +23,17 @@ extends Node2D
 	set(value):
 		color = value
 		update()
+
+var x: int = 0
+var y: int = 0
+
+
+var parent: Reactor:
+	get: 
+		var node = get_parent()
+		if node is Reactor:
+			return node
+		return null
 
 
 # Called when the node enters the scene tree for the first time.
@@ -45,4 +57,21 @@ func _draw():
 
 func update():
 	queue_redraw()
+
+
+func _input(event):
+	var reactor = parent
+	if reactor == null:
+		return
+
+	if event is InputEventMouseButton:
+		var dx = event.position.x - self.global_position.x
+		var dy = event.position.y - self.global_position.y
+		
+		if dx >= 0 and dx < width and dy >= 0 and dy < height:
+			if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+				reactor.emit_signal("add_operator", x, y)
+			if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
+				# reactor.add_operator(x, y)
+				pass
 

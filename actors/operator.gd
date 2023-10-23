@@ -84,12 +84,21 @@ enum InOut {
 		data = value
 		update()
 
+var x: int = 0
+var y: int = 0
+
+
+var incircle_radius: float:
+	get:
+		return (size * size) / (2 * size + sqrt(2) * size)
 
 var centre: Vector2:
 	get:
-		var p = size / 3.0
-		if layer == Layer.Blue:
-			p *= 2
+		var h = incircle_radius / sqrt(2)
+		var p = 0
+		match layer:
+			Layer.Red: p = size/2 - h
+			Layer.Blue: p = size/2 + h
 		return Vector2(p, p)
 
 var color: Color:
@@ -178,6 +187,8 @@ func draw_in_out():
 func draw_circle_text(lines: Array[String]):
 	var radius = size * radius_scale
 	draw_circle(centre, radius, color)
+	draw_arc(centre, radius, 0, TAU, 128, COLOR_BORDER, 2)
+	
 	var font_size = size * text_size_scale
 	var offset_y = lines.size() * 0.5 * font_size - 2 * radius * text_offset_scale
 	var index = 0
